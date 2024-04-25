@@ -7,7 +7,6 @@ import (
 	"fmt"
 	// "time"
 
-	// "fmt"
 	"log"
 	"net/http"
 	"os"
@@ -26,6 +25,28 @@ func initConfig() {
 
 func main() {
 	initConfig()
+
+	// // Make call
+	// timeout := 15 * time.Second
+	// a, err := bond.InitAt(Config.Modem.Port, Config.Modem.BaudRate, true)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	// if err = a.Init(); err != nil {
+	// 	log.Fatal(err)
+	// }
+	// atc := bond.NewATCommander(a, timeout)
+	// if err = atc.Call(""); err != nil {
+	// 	log.Fatal(err)
+	// }
+	// time.Sleep(5 * time.Second)
+
+	// // Hangup
+	// if err = atc.Hangup(); err != nil {
+	// 	log.Fatal(err)
+	// }
+
+	// return
 
 	// // SMS EXAMPLE
 	// modem, err := bond.InitModem(Config.Modem.Port, Config.Modem.BaudRate, false)
