@@ -4,12 +4,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/warthog618/modem/at"
 	"github.com/warthog618/modem/gsm"
-	"github.com/warthog618/modem/serial"
-	"github.com/warthog618/modem/trace"
 	"github.com/warthog618/sms"
-	"io"
 )
 
 type MessagingService struct {
@@ -51,21 +47,4 @@ func (s *MessagingService) sendPDU(number string, message string) error {
 		log.Printf("PDU %d sent successfully\n", i+1)
 	}
 	return nil
-}
-
-func InitModem(port string, baudRate int) (*gsm.GSM, error) {
-	m, err := serial.New(serial.WithPort(port), serial.WithBaud(baudRate))
-	if err != nil {
-		return nil, err
-	}
-	var mio io.ReadWriter = m
-	mio = trace.New(m)
-	// gopts := []gsm.Option{} // if you want PDU mode for some reason you need to remove gsm.WithTextMode, not gonna bother with that
-	gopts := []gsm.Option{gsm.WithTextMode}
-
-	g := gsm.New(at.New(mio, at.WithTimeout(5*time.Second)), gopts...)
-	if err := g.Init(); err != nil {
-		return nil, err
-	}
-	return g, nil
 }
