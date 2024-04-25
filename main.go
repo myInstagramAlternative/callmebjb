@@ -4,12 +4,14 @@ import (
 	"callmebjb/api"
 	// "callmebjb/bond"
 	"callmebjb/utils"
-
 	"fmt"
+	// "time"
+
+	// "fmt"
 	"log"
 	"net/http"
 	"os"
-	// "time"
+	// "github.com/warthog618/sms/encoding/gsm7"
 )
 
 var Config utils.Config
@@ -25,7 +27,8 @@ func initConfig() {
 func main() {
 	initConfig()
 
-	// modem, err := bond.InitModem(Config.Modem.Port, Config.Modem.BaudRate)
+	// // SMS EXAMPLE
+	// modem, err := bond.InitModem(Config.Modem.Port, Config.Modem.BaudRate, false)
 	// if err != nil {
 	// 	log.Fatal(err)
 	// }
@@ -35,6 +38,23 @@ func main() {
 	// if err := sender.Send("", "Test alarm", false); err != nil {
 	// 	log.Fatal(err)
 	// }
+
+	// // USSD EXAMPLE
+	// msg := "*131*1#"
+	// timeout := 15 * time.Second
+	// a, err := bond.InitAt(Config.Modem.Port, Config.Modem.BaudRate, false)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	// if err = a.Init(); err != nil {
+	// 	log.Fatal(err)
+	// }
+	// atc := bond.NewATCommander(a, timeout)
+	// res, err := atc.SendUSSD(msg)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	// fmt.Printf("%s", res)
 
 	// log.Println("SMS sent successfully!")
 
