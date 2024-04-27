@@ -1,20 +1,118 @@
 openapi: "3.0.0"
 info:
-  version: 1.0.0
-  title: Minimal ping API server
+  version: 0.1.0
+  title: Call me Bond...
+servers:
+- url: http://localhost:8081
+  description: Local dev
 paths:
   /ping:
     get:
       responses:
         '200':
-          description: pet response
+          description: ping
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Pong'
+  /call:
+    get:
+      operationId: call
+      parameters:
+        - name: number
+          in: query
+          description: Phone number
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Succcesful call
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CallResponse'
+        '500':
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - BearerAuth:
+          - "call:w"
+  /hangup:
+    get:
+      operationId: hangup
+      responses:
+        '200':
+          description: Succcesful hung up the call
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CallResponse'
+        '500':
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - BearerAuth:
+          - "call:w"
+  /sms:
+    post:
+      operationId: sms
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SMS'
+      responses:
+        '200':
+          description: Successfully sent sms
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SMSResponse'
+        '500':
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - BearerAuth:
+          - "ussd:w"
+  /ussd:
+    get:
+      operationId: ussd
+      parameters:
+        - name: code
+          in: query
+          description: USSD code
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully sent USSD code
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/USSDResponse'
+        '500':
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - BearerAuth:
+          - "ussd:w"
 components:
   schemas:
-    # base types
     Pong:
       type: object
       required:
@@ -23,3 +121,49 @@ components:
         ping:
           type: string
           example: pong
+    SMS:
+      type: object
+      required:
+        - number
+        - message
+      properties:
+        number:
+          type: string
+        message:
+          type: string
+    CallResponse:
+      type: object
+      properties:
+        status:
+          type: string
+    SMSResponse:
+      type: object
+      properties:
+        status:
+          type: string
+    USSDResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        message:
+          type: string    
+    Error:
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+          description: Error code
+        message:
+          type: string
+          description: Error message
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+security:
+  - BearerAuth: [ ]
