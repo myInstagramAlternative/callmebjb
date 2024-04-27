@@ -6,20 +6,85 @@
 package api
 
 import (
+	"context"
 	"fmt"
 	"net/http"
+
+	"github.com/oapi-codegen/runtime"
 )
+
+const (
+	BearerAuthScopes = "BearerAuth.Scopes"
+)
+
+// CallResponse defines model for CallResponse.
+type CallResponse struct {
+	Status *string `json:"status,omitempty"`
+}
+
+// Error defines model for Error.
+type Error struct {
+	// Code Error code
+	Code int32 `json:"code"`
+
+	// Message Error message
+	Message string `json:"message"`
+}
 
 // Pong defines model for Pong.
 type Pong struct {
 	Ping string `json:"ping"`
 }
 
+// SMS defines model for SMS.
+type SMS struct {
+	Message string `json:"message"`
+	Number  string `json:"number"`
+}
+
+// SMSResponse defines model for SMSResponse.
+type SMSResponse struct {
+	Status *string `json:"status,omitempty"`
+}
+
+// USSDResponse defines model for USSDResponse.
+type USSDResponse struct {
+	Message *string `json:"message,omitempty"`
+	Status  *string `json:"status,omitempty"`
+}
+
+// CallParams defines parameters for Call.
+type CallParams struct {
+	// Number Phone number
+	Number string `form:"number" json:"number"`
+}
+
+// UssdParams defines parameters for Ussd.
+type UssdParams struct {
+	// Code USSD code
+	Code string `form:"code" json:"code"`
+}
+
+// SmsJSONRequestBody defines body for Sms for application/json ContentType.
+type SmsJSONRequestBody = SMS
+
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 
+	// (GET /call)
+	Call(w http.ResponseWriter, r *http.Request, params CallParams)
+
+	// (GET /hangup)
+	Hangup(w http.ResponseWriter, r *http.Request)
+
 	// (GET /ping)
 	GetPing(w http.ResponseWriter, r *http.Request)
+
+	// (POST /sms)
+	Sms(w http.ResponseWriter, r *http.Request)
+
+	// (GET /ussd)
+	Ussd(w http.ResponseWriter, r *http.Request, params UssdParams)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -31,12 +96,122 @@ type ServerInterfaceWrapper struct {
 
 type MiddlewareFunc func(http.Handler) http.Handler
 
+// Call operation middleware
+func (siw *ServerInterfaceWrapper) Call(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var err error
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{"call:w"})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params CallParams
+
+	// ------------- Required query parameter "number" -------------
+
+	if paramValue := r.URL.Query().Get("number"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "number"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "number", r.URL.Query(), &params.Number)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "number", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.Call(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r.WithContext(ctx))
+}
+
+// Hangup operation middleware
+func (siw *ServerInterfaceWrapper) Hangup(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{"call:w"})
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.Hangup(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r.WithContext(ctx))
+}
+
 // GetPing operation middleware
 func (siw *ServerInterfaceWrapper) GetPing(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetPing(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r.WithContext(ctx))
+}
+
+// Sms operation middleware
+func (siw *ServerInterfaceWrapper) Sms(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{"sms:w"})
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.Sms(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r.WithContext(ctx))
+}
+
+// Ussd operation middleware
+func (siw *ServerInterfaceWrapper) Ussd(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var err error
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{"ussd:w"})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params UssdParams
+
+	// ------------- Required query parameter "code" -------------
+
+	if paramValue := r.URL.Query().Get("code"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "code"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "code", r.URL.Query(), &params.Code)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "code", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.Ussd(w, r, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -160,7 +335,11 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 		ErrorHandlerFunc:   options.ErrorHandlerFunc,
 	}
 
+	m.HandleFunc("GET "+options.BaseURL+"/call", wrapper.Call)
+	m.HandleFunc("GET "+options.BaseURL+"/hangup", wrapper.Hangup)
 	m.HandleFunc("GET "+options.BaseURL+"/ping", wrapper.GetPing)
+	m.HandleFunc("POST "+options.BaseURL+"/sms", wrapper.Sms)
+	m.HandleFunc("GET "+options.BaseURL+"/ussd", wrapper.Ussd)
 
 	return m
 }
