@@ -28,7 +28,7 @@ server:
   port: "8081"
 ```
 
-btw you can set CONFIG_PATH env var
+by default it will look for `config.yaml` in the same directory as the binary, you can set CONFIG_PATH env var
 
 ### Building
 
