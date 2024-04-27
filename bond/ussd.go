@@ -2,7 +2,6 @@ package bond
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/warthog618/modem/info"
@@ -26,8 +25,6 @@ func (atc *ATCommander) SendUSSD(msg string) (string, error) {
 	case <-time.After(atc.Timeout):
 		return "", fmt.Errorf("Timeout")
 	case rsp := <-rspChan:
-		fields := strings.Split(info.TrimPrefix(rsp, "+CUSD"), ",")
-		rspb := string(fields[1])
-		return rspb, nil
+		return info.TrimPrefix(rsp, "+CUSD"), nil
 	}
 }
