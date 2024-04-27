@@ -4,11 +4,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-	//	"gopkg.in/yaml.v3"
-
-	// Import the package containing the function to be tested
 	"callmebjb/utils"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestReadConfig(t *testing.T) {
@@ -34,10 +31,10 @@ server:
 	tmpfile.Close()
 
 	// Call the function to be tested
-	var cfg utils.Config
+	var cfg utils.Configs
 	utils.ReadConfig(&cfg, tmpfile.Name())
 	// Define the expected configuration struct
-	expectedCfg := utils.Config{
+	expectedCfg := utils.Configs{
 		Modem: struct {
 			Port     string `yaml:"port"`
 			BaudRate int    `yaml:"baudrate"`

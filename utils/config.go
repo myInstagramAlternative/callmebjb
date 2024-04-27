@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-type Config struct {
+type Configs struct {
 	Modem struct {
 		Port     string `yaml:"port"`
 		BaudRate int    `yaml:"baudrate"`
@@ -17,7 +17,7 @@ type Config struct {
 	} `yaml:"server"`
 }
 
-func ReadConfig(cfg *Config, fileName string) {
+func ReadConfig(cfg *Configs, fileName string) {
 	f, err := os.Open(fileName)
 	if err != nil {
 		log.Fatal(err)
@@ -29,4 +29,14 @@ func ReadConfig(cfg *Config, fileName string) {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+var Config Configs
+
+func InitConfig() {
+	configPath := os.Getenv("CONFIG_PATH")
+	if configPath == "" {
+		configPath = "config.yaml"
+	}
+	ReadConfig(&Config, configPath)
 }
