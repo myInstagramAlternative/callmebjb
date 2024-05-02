@@ -28,7 +28,7 @@ func NewSerialManager(port string, baudRate int) (*SerialManager, error) {
 		CommandCh: make(chan Command, 100),
 	}
 	fmt.Printf("%v, %v", manager.Port, manager.BaudRate)
-	conn, err := bond.InitAt(manager.Port, manager.BaudRate, true)
+	conn, err := bond.InitAt(manager.Port, manager.BaudRate, false)
 	if err != nil {
 		return nil, err
 	}

@@ -48,13 +48,24 @@ func (Server) GetPing(w http.ResponseWriter, r *http.Request) {
 func (Server) Call(w http.ResponseWriter, r *http.Request, params CallParams) {
 	w.Header().Add("Content-Type", "application/json")
 
+	if params.Number == "L" {
+
+		resp := Error{
+			Code:    403,
+			Message: fmt.Sprintf("For privacy reasons redial is not allowed, please provide number."),
+		}
+
+		w.WriteHeader(http.StatusForbidden)
+		_ = json.NewEncoder(w).Encode(resp)
+		return
+	}
+
 	timeout := 15 * time.Second
 	atc := bond.NewATCommander(serialMgr.Connection, timeout)
 
 	if err := serialMgr.Execute(func() error {
 		return atc.Call(params.Number)
 	}); err != nil {
-
 		resp := Error{
 			Code:    500,
 			Message: fmt.Sprintf("%v", err),
